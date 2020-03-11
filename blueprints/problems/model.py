@@ -56,3 +56,35 @@ class Problems(db.Model):
     # Reprsentative form to be shown in log
     def __repr__(self):
         return "Problems ID " + str(self.id) + " (" + self.level + ")"
+
+'''
+    The following class is used to make the model of "Solutions" table
+'''
+class Solutions(db.Model):
+    # Define the property (each property associated with a column in database)
+    __tablename__ = 'solutions'
+    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
+    problem_id = db.Column(db.Integer, db.ForeignKey('problems.id'), nullable = False)
+    explanation = db.Column(db.String(255), default = '')
+    created_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
+    updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
+    deleted_at = db.Column(db.DateTime, nullable = True)
+
+    # The following dictionary is used to serialize "Solutions" instances into JSON form
+    response_fields = {
+        'id': fields.Integer,
+        'problem_id': fields.Integer,
+        'explanation': fields.String,
+        'created_at': fields.DateTime,
+        'updated_at': fields.DateTime,
+        'deleted_at': fields.DateTime
+    }
+
+    # Required fields when create new instances of "Solutions" class
+    def __init__(self, problem_id, explanation):
+        self.problem_id = problem_id
+        self.explanation = explanation
+
+    # Reprsentative form to be shown in log
+    def __repr__(self):
+        return "Solution ID " + str(self.id) + " for Problem ID " + str(self.problem_id)
