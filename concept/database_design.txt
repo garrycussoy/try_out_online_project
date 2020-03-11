@@ -1,0 +1,70 @@
+------------------------------------------------
+----------   TRY OUT ONLINE PROJECT   ----------
+----------       DATABASE DESIGN      ----------
+------------------------------------------------
+
+1. Problems
+- ID (PK)
+- Level
+- Content
+- Type
+- Answer
+- First Option
+- Second Option
+- Third Option
+- Fourth Option
+
+2. Topics
+- ID (PK)
+- Topic
+
+3. Problem Topics
+- ID (PK)
+- Problem ID (FK from "ID" column on "Problems" table)
+- Topic ID (FK from "ID" column on "Topics" table)
+
+4. Solutions
+- ID (PK)
+- Problem ID (FK from "ID" column on "Problmes" table)
+- Explanation
+
+5. Try Out Packet
+- ID (PK)
+- Name
+- Description
+- Is Show
+- Time Limit
+- Maximum Score
+- Multiple Choice Total Problem
+- Short Answer Total Problem
+- Multiple Choice Correct Scoring
+- Short Answer Correct Scoring
+- Multiple Choice Wrong Scoring
+- Short Answer Wrong Scoring
+
+6. Try Out Problems
+- ID (PK)
+- Try Out ID (FK from "ID" column on "Try Out Packet" table)
+- Problem ID (FK from "ID" column on "Problmes" table)
+
+7. Users
+- ID (PK)
+- Name
+- Email (Unique)
+- Password
+- School
+
+8. Chosen Try Out
+- ID (PK)
+- User ID (FK from "ID" column on "Users" table)
+- Try Out ID (FK from "ID" column on "Try Out Packet" table)
+- Has Done (True or False)
+- Score
+
+9. User Answer
+- ID (PK)
+- Chosen Try Out ID (FK from "ID" column on "Chosen Try Out" table)
+- Try Out Problem ID (FK from "ID" column on "Try Out Problems" table)
+- Answer
+- Is Correct (True, False, or Null)
+- Score
