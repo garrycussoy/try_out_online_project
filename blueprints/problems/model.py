@@ -55,4 +55,4 @@ class Problems(db.Model):
 
     # Reprsentative form to be shown in log
     def __repr__(self):
-        return "Problems ID " + self.id + " (" + self.level + ")"
+        return "Problems ID " + str(self.id) + " (" + self.level + ")"

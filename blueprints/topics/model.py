@@ -10,7 +10,7 @@ from flask_restful import fields
 '''
 class Topics(db.Model):
     # Define the property (each property associated with a column in database)
-    __tablename__ = 'problems'
+    __tablename__ = 'topics'
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     topic = db.Column(db.String(255), nullable = False, default = '')
     created_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
