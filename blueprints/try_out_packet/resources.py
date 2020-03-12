@@ -14,7 +14,7 @@ from blueprints.try_out_packet.model import TryOutPacket
 from blueprints.try_out_problems.model import TryOutProblems
 
 # Creating blueprint
-bp_test = Blueprint('test',__name__)
+bp_test = Blueprint('test', __name__)
 api = Api(bp_test)
 
 '''

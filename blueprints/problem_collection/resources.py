@@ -15,7 +15,7 @@ from blueprints.topics.model import Topics
 from blueprints.problem_topics.model import ProblemTopics
 
 # Creating blueprint
-bp_problem_collection = Blueprint('problem_collection',__name__)
+bp_problem_collection = Blueprint('problem_collection', __name__)
 api = Api(bp_problem_collection)
 
 '''

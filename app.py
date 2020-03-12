@@ -7,10 +7,6 @@ import logging
 from flask_restful import Api
 from blueprints import app, manager
 from logging.handlers import RotatingFileHandler
-from werkzeug.contrib.cache import SimpleCache
-
-# Manage cache
-cache = SimpleCache()
 
 # To catch all 404 error type
 api = Api(app, catch_all_404s=True)
