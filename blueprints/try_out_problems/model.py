@@ -10,7 +10,7 @@ from blueprints.try_out_packet.model import TryOutPacket
 from blueprints.problems.model import Problems
 
 '''
-    The following class is used to make the model of "TryOutProblems" table
+The following class is used to make the model of "TryOutProblems" table.
 '''
 class TryOutProblems(db.Model):
     # Define the property (each property associated with a column in database)

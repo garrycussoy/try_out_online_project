@@ -10,7 +10,7 @@ from blueprints.problems.model import Problems
 from blueprints.topics.model import Topics
 
 '''
-    The following class is used to make the model of "ProblemTopics" table
+The following class is used to make the model of "ProblemTopics" table.
 '''
 class ProblemTopics(db.Model):
     # Define the property (each property associated with a column in database)

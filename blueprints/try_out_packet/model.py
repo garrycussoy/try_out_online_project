@@ -6,14 +6,14 @@ from blueprints import db
 from flask_restful import fields
 
 '''
-    The following class is used to make the model of "TryOutPacket" table
+The following class is used to make the model of "TryOutPacket" table.
 '''
 class TryOutPacket(db.Model):
     # Define the property (each property associated with a column in database)
     __tablename__ = 'try_out_packet'
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     name = db.Column(db.String(255), nullable = False, default = '')
-    description = db.Column(db.String(255), nullable = False, default = '')
+    description = db.Column(db.Text, nullable = False, default = '')
     is_show = db.Column(db.Boolean, default = True)
     time_limit = db.Column(db.Integer, nullable = False, default = 0)
     maximum_score = db.Column(db.Integer, nullable = False, default = 0)

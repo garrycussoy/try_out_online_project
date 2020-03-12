@@ -6,7 +6,7 @@ from blueprints import db
 from flask_restful import fields
 
 '''
-    The following class is used to make the model of "Topics" table
+The following class is used to make the model of "Topics" table.
 '''
 class Topics(db.Model):
     # Define the property (each property associated with a column in database)

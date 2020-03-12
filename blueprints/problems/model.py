@@ -6,20 +6,20 @@ from blueprints import db
 from flask_restful import fields
 
 '''
-    The following class is used to make the model of "Problems" table
+The following class is used to make the model of "Problems" table.
 '''
 class Problems(db.Model):
     # Define the property (each property associated with a column in database)
     __tablename__ = 'problems'
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     level = db.Column(db.String(255), nullable = False, default = '')
-    content = db.Column(db.String(255), nullable = False, default = '')
+    content = db.Column(db.Text, nullable = False, default = '')
     problem_type = db.Column(db.String(255), nullable = False, default = '')
-    answer = db.Column(db.String(255), nullable = False, default = '')
-    first_option = db.Column(db.String(255), nullable = False, default = '')
-    second_option = db.Column(db.String(255), nullable = False, default = '')
-    third_option = db.Column(db.String(255), nullable = False, default = '')
-    fourth_option = db.Column(db.String(255), nullable = False, default = '')
+    answer = db.Column(db.Text, nullable = False, default = '')
+    first_option = db.Column(db.Text, nullable = False, default = '')
+    second_option = db.Column(db.Text, nullable = False, default = '')
+    third_option = db.Column(db.Text, nullable = False, default = '')
+    fourth_option = db.Column(db.Text, nullable = False, default = '')
     created_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
     updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
     deleted_at = db.Column(db.DateTime, nullable = True)
@@ -58,14 +58,14 @@ class Problems(db.Model):
         return "Problems ID " + str(self.id) + " (" + self.level + ")"
 
 '''
-    The following class is used to make the model of "Solutions" table
+The following class is used to make the model of "Solutions" table.
 '''
 class Solutions(db.Model):
     # Define the property (each property associated with a column in database)
     __tablename__ = 'solutions'
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     problem_id = db.Column(db.Integer, db.ForeignKey('problems.id'), nullable = False)
-    explanation = db.Column(db.String(255), default = '')
+    explanation = db.Column(db.Text, default = '')
     created_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
     updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
     deleted_at = db.Column(db.DateTime, nullable = True)
