@@ -52,7 +52,7 @@ from blueprints.problem_collection.resources import bp_problem_collection
 from blueprints.try_out_packet.resources import bp_test
 
 # Register routes
-app.register_blueprint(bp_auth, url_prefix='')
+app.register_blueprint(bp_auth, url_prefix='/login-admin')
 app.register_blueprint(bp_problems, url_prefix='/problem')
 app.register_blueprint(bp_problem_collection, url_prefix='/problem-collection')
 app.register_blueprint(bp_test, url_prefix='/test')

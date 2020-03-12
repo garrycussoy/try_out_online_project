@@ -13,7 +13,7 @@ from sqlalchemy import desc
 from blueprints.problems.model import Problems, Solutions
 
 # Creating blueprint
-bp_problems = Blueprint('problems',__name__)
+bp_problems = Blueprint('problems', __name__)
 api = Api(bp_problems)
 
 '''
