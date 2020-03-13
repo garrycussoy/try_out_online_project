@@ -18,8 +18,8 @@ class TryOutProblems(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     try_out_id = db.Column(db.Integer, db.ForeignKey('try_out_packet.id'), nullable = False)
     problem_id = db.Column(db.Integer, db.ForeignKey('problems.id'), nullable = False)
-    created_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
-    updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
+    created_at = db.Column(db.DateTime, default = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     deleted_at = db.Column(db.DateTime, nullable = True)
 
     # The following dictionary is used to serialize "TryOutProblems" instances into JSON form

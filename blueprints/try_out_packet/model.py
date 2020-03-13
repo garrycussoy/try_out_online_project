@@ -23,8 +23,8 @@ class TryOutPacket(db.Model):
     mc_wrong_scoring = db.Column(db.Integer, nullable = False, default = 0)
     sa_correct_scoring = db.Column(db.Integer, nullable = False, default = 0)
     sa_wrong_scoring = db.Column(db.Integer, nullable = False, default = 0)
-    created_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
-    updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
+    created_at = db.Column(db.DateTime, default = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     deleted_at = db.Column(db.DateTime, nullable = True)
 
     # The following dictionary is used to serialize "TryOutPacket" instances into JSON form
