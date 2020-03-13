@@ -48,8 +48,8 @@ class ProblemsResource(Resource):
         parser.add_argument('page', location = 'args', required = True, type = int)
         args = parser.parse_args()
 
-        # Query all problems
-        problems_list = Problems.query
+        # Query all non-deleted problems
+        problems_list = Problems.query.filter_by(deleted_at = None)
         
         # Search by level
         if args['level'] != '' and args['level'] != None and args['level'] != 'Semua Level':
@@ -194,5 +194,55 @@ class ProblemsResource(Resource):
         new_problem['solution'] = args['explanation']
         return {'message': 'Sukses menambahkan soal baru', 'new_problem': new_problem}, 200
 
+'''
+The following class is designed for all CRUD functionality for given problem ID
+'''
+class ProblemsResourceById(Resource):
+    '''
+    The following method is designed to prevent CORS.
+
+    :param object self: A must present keyword argument
+    :return: Status OK
+    '''
+    def options(self, problem_id = None):
+        return {'status': 'ok'}, 200
+    
+    '''
+    The following method is designed to get all information about a problem for a given problem ID
+
+    :param object self: A must present keyword argument
+    :param integer problem_id: Problem ID given by admin, when admin click on a problem to look at the
+    problem detail
+    :return: All information of that problem, if the problem exist, and give "not found" message otherwise
+    '''
+    @jwt_required
+    @admin_required
+    def get(self, problem_id):
+        # Get related problem
+        related_problem = Problems.query.filter_by(id = problem_id).filter_by(deleted_at = None).first()
+        if related_problem is None:
+            return {'message': 'Soal yang kamu cari tidak ditemukan'}, 404
+        
+        # Searching for topics
+        topics = []
+        problem_topics_list = ProblemTopics.query.filter_by(problem_id = problem_id)
+        for problem_topic in problem_topics_list:
+            related_topic = Topics.query.filter_by(id = problem_topic.topic_id).first()
+            topics.append(related_topic.topic)
+        
+        # Formatting topics list into a string
+        topics = ", ".join(topics)
+
+        # Searching for related solution
+        related_solution = Solutions.query.filter_by(problem_id = problem_id).first()
+        explanation = related_solution.explanation
+
+        # Prepare the data to be shown
+        related_problem = marshal(related_problem, Problems.response_fields)
+        related_problem['topic'] = topics
+        related_problem['solution'] = explanation
+        return related_problem, 200
+
 # Endpoint in problem route
 api.add_resource(ProblemsResource, '')
+api.add_resource(ProblemsResourceById, '/<problem_id>')
