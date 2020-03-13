@@ -61,7 +61,7 @@ class ProblemsResource(Resource):
         problems_list_to_show = []
         for problem in problems_list:
             # Searching all topics related to this problem
-            related_problem_topic_instances = ProblemTopics.query.filter_by(problem_id = problem.id).all()
+            related_problem_topic_instances = ProblemTopics.query.filter_by(problem_id = problem.id).filter_by(deleted_at = None).all()
             related_topics = []
             for problem_topic_instance in related_problem_topic_instances:
                 topic = Topics.query.filter_by(id = problem_topic_instance.topic_id).first()
@@ -86,7 +86,7 @@ class ProblemsResource(Resource):
                 topic_id = topic_inputted.id
 
             # Get all problems ID that related to the topic inputted
-            all_problem_topics_related = ProblemTopics.query.filter_by(topic_id = topic_id)
+            all_problem_topics_related = ProblemTopics.query.filter_by(topic_id = topic_id).filter_by(deleted_at = None)
             related_problem_id_list = []
             for problem_topic in all_problem_topics_related:
                 related_problem_id_list.append(problem_topic.problem_id)
@@ -225,7 +225,7 @@ class ProblemsResourceById(Resource):
         
         # Searching for topics
         topics = []
-        problem_topics_list = ProblemTopics.query.filter_by(problem_id = problem_id)
+        problem_topics_list = ProblemTopics.query.filter_by(problem_id = problem_id).filter_by(deleted_at = None)
         for problem_topic in problem_topics_list:
             related_topic = Topics.query.filter_by(id = problem_topic.topic_id).first()
             topics.append(related_topic.topic)
@@ -242,6 +242,108 @@ class ProblemsResourceById(Resource):
         related_problem['topic'] = topics
         related_problem['solution'] = explanation
         return related_problem, 200
+
+    '''
+    The following method is designed to edit a problem for a given ID problem
+
+    :param object self: A must present keyword argument
+    :param integer problem_id: Problem ID given by admin, when admin click on a problem to edit it
+    :return: All information of the edited problem, if edit proccess success, but give a failed message if
+    the proccess failed
+    '''
+    @jwt_required
+    @admin_required
+    def put(self, problem_id):
+        # Searching for related problem
+        related_problem = Problems.query.filter_by(id = problem_id).filter_by(deleted_at = None).first()
+        if related_problem is None:
+            return {'message': 'Soal yang kamu cari tidak ditemukan'}, 404
+        
+        # Take input from admin
+        parser = reqparse.RequestParser()
+        parser.add_argument('level', location = 'json', required = True)
+        parser.add_argument('topics', location = 'json', required = True, type = list)
+        parser.add_argument('content', location = 'json', required = True)
+        parser.add_argument('problem_type', location = 'json', required = True)
+        parser.add_argument('answer', location = 'json', required = True)
+        parser.add_argument('first_option', location = 'json', required = False)
+        parser.add_argument('second_option', location = 'json', required = False)
+        parser.add_argument('third_option', location = 'json', required = False)
+        parser.add_argument('fourth_option', location = 'json', required = False)
+        parser.add_argument('explanation', location = 'json', required = False)
+        args = parser.parse_args()
+
+        # Check whether tehre is an empty field or not
+        if (
+            args['level'] == '' or args['level'] == None
+            or args['topics'] == []
+            or args['content'] == '' or args['content'] == None
+            or args['problem_type'] == '' or args['problem_type'] == None
+            or args['answer'] == '' or args['answer'] == None
+        ):
+            return {'message': 'Semua kolom selain kolom opsi dan kolom solusi lengkap wajib diisi'}, 400
+        
+        # Handle special case when user choose multiple choice type but doesn't specify at least one option
+        if args['problem_type'] == 'Pilihan Ganda' and (args['first_option'] == '' or args['first_option'] == None):
+            return {'message': 'Untuk tipe soal pilihan ganda, kamu harus menyediakan setidaknya satu opsi lain'}, 400
+        
+        # ---------- Update records for associate table in the database ----------
+        # ----- Update record for "Problems" table -----
+        related_problem.level = args['level']
+        related_problem.content = args['content']
+        related_problem.problem_type = args['problem_type']
+        related_problem.answer = args['answer']
+        related_problem.first_option = args['first_option']
+        related_problem.second_option = args['second_option']
+        related_problem.third_option = args['third_option']
+        related_problem.fourth_option = args['fourth_option']
+        related_problem.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        db.session.commit()
+        
+        # ----- Update record for "Solutions" table -----
+        related_solution = Solutions.query.filter_by(problem_id = problem_id).first()
+        related_solution.explanation = args['explanation']
+        related_solution.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        db.session.commit()
+
+        # ----- Update record for "ProblemSolutions" table and create new record for "Topics" table if there
+        # is new topic -----
+        # Removing all old topics in the problem
+        old_problem_topics = ProblemTopics.query.filter_by(problem_id = problem_id).filter_by(deleted_at = None)
+        for old_problem_topic in old_problem_topics:
+            old_problem_topic.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            old_problem_topic.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            db.session.commit()
+
+        # Get all topics available
+        topics_available = []
+        all_topics = Topics.query
+        for topic in all_topics:
+            topics_available.append(topic.topic)
+
+        # Looping through all inputted topics
+        for topic in args['topics']:
+            if topic not in topics_available:
+                # Create new record in "Topics"
+                new_topic = Topics(topic)
+                db.session.add(new_topic)
+                db.session.commit()
+                topic_id = new_topic.id
+            else:
+                # Searching for topic ID
+                related_topic = Topics.query.filter_by(topic = topic).first()
+                topic_id = related_topic.id
+            
+            # Create new record in "ProblemTopics" table
+            new_problem_topic = ProblemTopics(problem_id, topic_id)
+            db.session.add(new_problem_topic)
+            db.session.commit()
+
+        # Return success message and the new posted data
+        related_problem = marshal(related_problem, Problems.response_fields)
+        related_problem['topics'] = args['topics']
+        related_problem['solution'] = args['explanation']
+        return {'message': 'Sukses menambahkan soal baru', 'new_problem': related_problem}, 200
 
 # Endpoint in problem route
 api.add_resource(ProblemsResource, '')
