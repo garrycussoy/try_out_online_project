@@ -10,6 +10,9 @@ from flask_jwt_extended import jwt_required, get_jwt_claims
 from sqlalchemy import desc
 
 # Import models
+from blueprints.problems.model import Problems
+from blueprints.topics.model import Topics
+from blueprints.problem_topics.model import ProblemTopics
 from blueprints.try_out_packet.model import TryOutPacket
 from blueprints.try_out_problems.model import TryOutProblems
 
@@ -146,5 +149,62 @@ class TestResource(Resource):
         new_try_out_packet['problems'] = args['problems']
         return {'message': 'Sukses membuat paket tes baru', 'detail_test': new_try_out_packet}, 200
 
+'''
+The following class is designed for CRUD functionality of test route for given Try Out ID.
+'''
+class TestResourceById(Resource):
+    '''
+    The following method is designed to prevent CORS.
+
+    :param object self: A must present keyword argument
+    :param integer try_out_id: Try out ID specifiied in the URI
+    :return: Status OK
+    '''
+    def options(self, try_out_id = None):
+        return {'status': 'ok'}, 200
+
+    '''
+    The following method is designed to get all information about a test based on the given try out ID.
+
+    :param object self: A must present keyword argument
+    :param integer try_out_id: Try out ID given by admin when admin clik on a test name in "Test Collection"
+    page to see its detail
+    :return: Return all information about that test and some information about the problems on it
+    '''
+    @jwt_required
+    @admin_required
+    def get(self, try_out_id = None):
+        # Search for related try_out_packet
+        related_test = TryOutPacket.query.filter_by(deleted_at = None).filter_by(is_show = True).filter_by(id = try_out_id).first()
+        if related_test is None:
+            return {'message': 'Paket tes yang kamu cari tidak ditemukan'}, 404
+        
+        # Search for related problems
+        problems = []
+        to_problems = TryOutProblems.query.filter_by(deleted_at = None).filter_by(try_out_id = try_out_id)
+        for to_problem in to_problems:
+            # Searching for the problems
+            problem = Problems.query.filter_by(deleted_at = None).filter_by(id = to_problem.problem_id).first()
+
+            # Searching for topics
+            problem_topics =  ProblemTopics.query.filter_by(deleted_at = None).filter_by(problem_id = problem.id)
+            topics = []
+            for problem_topic in problem_topics:
+                topic = Topics.query.filter_by(id = problem_topic.topic_id).first()
+                topics.append(topic.topic)
+            topics = ", ".join(topics)
+
+            # Formatting the problem
+            problem = marshal(problem, Problems.response_fields)
+            problem['topic'] = topics
+
+            problems.append(problem)
+        
+        # Prepare the data to be shown
+        related_test = marshal(related_test, TryOutPacket.response_fields)
+        related_test['problems'] = problems
+        return related_test, 200
+
 # Endpoint in test route
 api.add_resource(TestResource, '')
+api.add_resource(TestResourceById, '/<try_out_id>')

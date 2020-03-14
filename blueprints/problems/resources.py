@@ -123,6 +123,7 @@ class ProblemsResourceById(Resource):
     The following method is designed to prevent CORS.
 
     :param object self: A must present keyword argument
+    :param integer problem_id: Problem ID specified in the URI
     :return: Status OK
     '''
     def options(self, problem_id = None):
