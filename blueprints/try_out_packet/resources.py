@@ -50,7 +50,7 @@ class TestResource(Resource):
         args = parser.parse_args()
 
         # Query all tests available
-        tests_available = TryOutPacket.query.filter_by(deleted_at = None).filter_by(is_show = True)
+        tests_available = TryOutPacket.query.filter_by(deleted_at = None)
 
         # Search by name
         if args['name'] != '' and args['name'] is not None:
@@ -175,7 +175,7 @@ class TestResourceById(Resource):
     @admin_required
     def get(self, try_out_id = None):
         # Search for related try_out_packet
-        related_test = TryOutPacket.query.filter_by(deleted_at = None).filter_by(is_show = True).filter_by(id = try_out_id).first()
+        related_test = TryOutPacket.query.filter_by(deleted_at = None).filter_by(id = try_out_id).first()
         if related_test is None:
             return {'message': 'Paket tes yang kamu cari tidak ditemukan'}, 404
         
@@ -210,7 +210,8 @@ class TestResourceById(Resource):
 
     :param object self: A must present keyword argument
     :param integer try_out_id: Try out ID specified by admin when admin want to edit a test
-    :return: Return all information about the editted test and some information about the problems on it
+    :return: Return all information about the editted test and some information about the problems on it. Also
+    give a success or failure message
     '''
     @jwt_required
     @admin_required
@@ -222,7 +223,7 @@ class TestResourceById(Resource):
         args = parser.parse_args()
 
         # Search for related try_out_packet
-        related_test = TryOutPacket.query.filter_by(deleted_at = None).filter_by(is_show = True).filter_by(id = try_out_id).first()
+        related_test = TryOutPacket.query.filter_by(deleted_at = None).filter_by(id = try_out_id).first()
         if related_test is None:
             return {'message': 'Paket tes yang kamu cari tidak ditemukan'}, 404
 
@@ -261,7 +262,60 @@ class TestResourceById(Resource):
         # Serialize the test instance into JSON
         related_test = marshal(related_test, TryOutPacket.response_fields)
         related_test['problems'] = problems
-        return related_test, 200
+        return {'message': 'Sukses mengubah nama dan deskripsi', 'test': related_test}, 200
+
+    '''
+    The following method is designed to delete a test, specified by Try Out ID.
+
+    :param object self: A must present keyword argument
+    :param integer try_out_id: Try out ID specified by admin when admin want to delete a test
+    :return: Return all information about the deleted test and some information about the problems on it. Also
+    give a success or failure message
+    '''
+    @jwt_required
+    @admin_required
+    def delete(self, try_out_id = None):
+        # Search for related try_out_packet
+        related_test = TryOutPacket.query.filter_by(deleted_at = None).filter_by(id = try_out_id).first()
+        if related_test is None:
+            return {'message': 'Paket tes yang kamu cari tidak ditemukan'}, 404
+        
+        # Update record in "TryOutPacket" table
+        related_test.updated_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+        related_test.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+        db.session.commit()
+
+        # ---------- Prepare the data to be shown ----------
+        # Search for related problems
+        problems = []
+        to_problems = TryOutProblems.query.filter_by(deleted_at = None).filter_by(try_out_id = try_out_id)
+        for to_problem in to_problems:
+            # Update record in "TryOutProblems" table
+            to_problem.updated_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+            to_problem.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+            db.session.commit()
+            
+            # Searching for the problems
+            problem = Problems.query.filter_by(deleted_at = None).filter_by(id = to_problem.problem_id).first()
+
+            # Searching for topics
+            problem_topics =  ProblemTopics.query.filter_by(deleted_at = None).filter_by(problem_id = problem.id)
+            topics = []
+            for problem_topic in problem_topics:
+                topic = Topics.query.filter_by(id = problem_topic.topic_id).first()
+                topics.append(topic.topic)
+            topics = ", ".join(topics)
+
+            # Formatting the problem
+            problem = marshal(problem, Problems.response_fields)
+            problem['topic'] = topics
+
+            problems.append(problem)
+        
+        # Serialize the test instance into JSON
+        related_test = marshal(related_test, TryOutPacket.response_fields)
+        related_test['problems'] = problems
+        return {'message': 'Sukses menghapus paket tes', 'deleted_test': related_test}, 200
 
 # Endpoint in test route
 api.add_resource(TestResource, '')
