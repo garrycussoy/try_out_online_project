@@ -155,7 +155,7 @@ class ProblemsResourceById(Resource):
         topics = ", ".join(topics)
 
         # Searching for related solution
-        related_solution = Solutions.query.filter_by(problem_id = problem_id).first()
+        related_solution = Solutions.query.filter_by(problem_id = problem_id).filter_by(deleted_at = None).first()
         explanation = related_solution.explanation
 
         # Prepare the data to be shown
@@ -222,7 +222,7 @@ class ProblemsResourceById(Resource):
         db.session.commit()
         
         # ----- Update record for "Solutions" table -----
-        related_solution = Solutions.query.filter_by(problem_id = problem_id).first()
+        related_solution = Solutions.query.filter_by(problem_id = problem_id).filter_by(deleted_at = None).first()
         related_solution.explanation = args['explanation']
         related_solution.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         db.session.commit()
@@ -287,14 +287,17 @@ class ProblemsResourceById(Resource):
         related_problem.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
         db.session.commit()
 
-        # ---------- Prepare the data to be shown ----------
-        # ----- Search the solution -----
-        related_solution = Solutions.query.filter_by(problem_id = problem_id).first()
+        # Update record in "Solutions" table
+        related_solution = Solutions.query.filter_by(problem_id = problem_id).filter_by(deleted_at = None).first()
+        related_solution.updated_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+        related_solution.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
 
-        # ----- Search all related topics -----
+        # Update record in "ProblemTopics" table and store all related topics to be shown
         related_topics = []
         related_problem_topics = ProblemTopics.query.filter_by(problem_id = problem_id).filter_by(deleted_at = None)
         for related_problem_topic in related_problem_topics:
+            related_problem_topic.updated_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+            related_problem_topic.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
             related_topic = Topics.query.filter_by(id = related_problem_topic.topic_id).first()
             related_topics.append(related_topic.topic)
         
