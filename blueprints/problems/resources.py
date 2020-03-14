@@ -244,7 +244,7 @@ class ProblemsResourceById(Resource):
         return related_problem, 200
 
     '''
-    The following method is designed to edit a problem for a given ID problem
+    The following method is designed to edit a problem for a given ID problem.
 
     :param object self: A must present keyword argument
     :param integer problem_id: Problem ID given by admin, when admin click on a problem to edit it
@@ -343,7 +343,48 @@ class ProblemsResourceById(Resource):
         related_problem = marshal(related_problem, Problems.response_fields)
         related_problem['topics'] = args['topics']
         related_problem['solution'] = args['explanation']
-        return {'message': 'Sukses menambahkan soal baru', 'new_problem': related_problem}, 200
+        return {'message': 'Sukses mengubah soal', 'updated_problem': related_problem}, 200
+    
+    '''
+    The following method is designed to delete a problem (soft deleted only)
+
+    :param object self: A must present keyword argument
+    :param integer problem_id: Problem ID given by admin, when admin click on a problem to delete it
+    :return: All information of the deleted problem, if edit proccess success, but give a failed message if
+    the proccess failed
+    '''
+    @jwt_required
+    @admin_required
+    def delete(self, problem_id):
+        # Searching for related problem
+        related_problem = Problems.query.filter_by(id = problem_id).filter_by(deleted_at = None).first()
+        if related_problem is None:
+            return {'message': 'Soal yang kamu cari tidak ditemukan'}, 404
+        
+        # Update record in "Problems" table
+        related_problem.updated_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+        related_problem.deleted_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+        db.session.commit()
+
+        # ---------- Prepare the data to be shown ----------
+        # ----- Search the solution -----
+        related_solution = Solutions.query.filter_by(problem_id = problem_id).first()
+
+        # ----- Search all related topics -----
+        related_topics = []
+        related_problem_topics = ProblemTopics.query.filter_by(problem_id = problem_id).filter_by(deleted_at = None)
+        for related_problem_topic in related_problem_topics:
+            related_topic = Topics.query.filter_by(id = related_problem_topic.topic_id).first()
+            related_topics.append(related_topic.topic)
+        
+        # Format the list into a string
+        related_topics = ", ".join(related_topics)
+
+        # ----- Show the result -----
+        related_problem = marshal(related_problem, Problems.response_fields)
+        related_problem['topic'] = related_topics
+        related_problem['solution'] = related_solution.explanation
+        return {'message': 'Sukses menghapus soal', 'deleted_problem': related_problem}, 200
 
 # Endpoint in problem route
 api.add_resource(ProblemsResource, '')
