@@ -13,6 +13,7 @@ from sqlalchemy import desc
 from blueprints.problems.model import Problems, Solutions
 from blueprints.topics.model import Topics
 from blueprints.problem_topics.model import ProblemTopics
+from blueprints.try_out_problems.model import TryOutProblems
 
 # Creating blueprint
 bp_problems = Blueprint('problems', __name__)
@@ -282,6 +283,11 @@ class ProblemsResourceById(Resource):
         related_problem = Problems.query.filter_by(id = problem_id).filter_by(deleted_at = None).first()
         if related_problem is None:
             return {'message': 'Soal yang kamu cari tidak ditemukan'}, 404
+        
+        # Check whether the problem included in any test or not
+        related_to_problems = TryOutProblems.query.filter_by(deleted_at = None).filter_by(problem_id = problem_id).first()
+        if related_to_problems is not None:
+            return {'message': 'Kamu tidak bisa menghapus soal ini karena soal ini digunakan untuk tes'}, 400
         
         # Update record in "Problems" table
         related_problem.updated_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
