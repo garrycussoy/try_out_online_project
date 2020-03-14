@@ -24,6 +24,22 @@ app.config['JWT_SECRET_KEY'] = 'c2n!$st0pDo1ngt#!s$tuff'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
 jwt = JWTManager(app)
 
+'''
+The following function is designed as a decorator for admin authentication.
+'''
+def admin_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        verify_jwt_in_request()
+        claims = get_jwt_claims()
+        
+        # Validate username
+        if claims['username'] == 'garrycussoy':
+            return fn(*args, **kwargs)
+        else:
+            return {'message': 'Halaman ini hanya bisa diakses oleh admin'}, 403
+    return wrapper
+
 # ---------- Database Setup ----------
 # Connect to database
 try:

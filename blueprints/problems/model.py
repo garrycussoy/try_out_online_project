@@ -20,8 +20,8 @@ class Problems(db.Model):
     second_option = db.Column(db.Text, nullable = False, default = '')
     third_option = db.Column(db.Text, nullable = False, default = '')
     fourth_option = db.Column(db.Text, nullable = False, default = '')
-    created_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
-    updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
+    created_at = db.Column(db.DateTime, default = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     deleted_at = db.Column(db.DateTime, nullable = True)
 
     # The following dictionary is used to serialize "Problems" instances into JSON form
@@ -66,8 +66,8 @@ class Solutions(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     problem_id = db.Column(db.Integer, db.ForeignKey('problems.id'), nullable = False)
     explanation = db.Column(db.Text, default = '')
-    created_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
-    updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
+    created_at = db.Column(db.DateTime, default = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    updated_at = db.Column(db.DateTime, default = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     deleted_at = db.Column(db.DateTime, nullable = True)
 
     # The following dictionary is used to serialize "Solutions" instances into JSON form
