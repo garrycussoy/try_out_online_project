@@ -204,6 +204,64 @@ class TestResourceById(Resource):
         related_test = marshal(related_test, TryOutPacket.response_fields)
         related_test['problems'] = problems
         return related_test, 200
+    
+    '''
+    The following method is designed to edit name and description of a test, specified by try out ID.
+
+    :param object self: A must present keyword argument
+    :param integer try_out_id: Try out ID specified by admin when admin want to edit a test
+    :return: Return all information about the editted test and some information about the problems on it
+    '''
+    @jwt_required
+    @admin_required
+    def put(self, try_out_id = None):
+        # Take input from admin
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', location = 'json', required = True)
+        parser.add_argument('description', location = 'json', required = True)
+        args = parser.parse_args()
+
+        # Search for related try_out_packet
+        related_test = TryOutPacket.query.filter_by(deleted_at = None).filter_by(is_show = True).filter_by(id = try_out_id).first()
+        if related_test is None:
+            return {'message': 'Paket tes yang kamu cari tidak ditemukan'}, 404
+
+        # Check for emptyness
+        if args['name'] == '' or args['name'] is None or args['description'] == '' or args['description'] is None:
+            return {'message': 'Tidak boleh ada kolom yang dikosongkan'}, 400
+        
+        # Update record in "TryOutPacket" table
+        related_test.name = args['name']
+        related_test.description = args['description']
+        related_test.updated_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+        db.session.commit()
+
+        # ---------- Prepare the data to be shown ----------
+        # Search for related problems
+        problems = []
+        to_problems = TryOutProblems.query.filter_by(deleted_at = None).filter_by(try_out_id = try_out_id)
+        for to_problem in to_problems:
+            # Searching for the problems
+            problem = Problems.query.filter_by(deleted_at = None).filter_by(id = to_problem.problem_id).first()
+
+            # Searching for topics
+            problem_topics =  ProblemTopics.query.filter_by(deleted_at = None).filter_by(problem_id = problem.id)
+            topics = []
+            for problem_topic in problem_topics:
+                topic = Topics.query.filter_by(id = problem_topic.topic_id).first()
+                topics.append(topic.topic)
+            topics = ", ".join(topics)
+
+            # Formatting the problem
+            problem = marshal(problem, Problems.response_fields)
+            problem['topic'] = topics
+
+            problems.append(problem)
+        
+        # Serialize the test instance into JSON
+        related_test = marshal(related_test, TryOutPacket.response_fields)
+        related_test['problems'] = problems
+        return related_test, 200
 
 # Endpoint in test route
 api.add_resource(TestResource, '')
