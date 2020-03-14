@@ -31,6 +31,36 @@ class TestResource(Resource):
         return {'status': 'ok'}, 200
 
     '''
+    The following method is designed to get all tests list with some information about them. The tests shown
+    can be filtered by test name.
+
+    :param object self: A must present keyword argument
+    :return: Return all available tests list with some information about them, that satisfy the filter
+    contsraint inputted by admin
+    '''
+    @jwt_required
+    @admin_required
+    def get(self):
+        # Take input from admin
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', location = 'args', required = False)
+        args = parser.parse_args()
+
+        # Query all tests available
+        tests_available = TryOutPacket.query.filter_by(deleted_at = None).filter_by(is_show = True)
+
+        # Search by name
+        if args['name'] != '' and args['name'] is not None:
+            tests_available = tests_available.filter(TryOutPacket.name.like("%" + args['name'] + "%"))
+
+        # Prepare the data to be shown
+        tests_to_show = []
+        for test in tests_available:
+            test = marshal(test, TryOutPacket.response_fields)
+            tests_to_show.append(test)
+        return tests_to_show, 200
+
+    '''
     The following method is designed to post a new test.
 
     :param object self: A must present keyword argument
