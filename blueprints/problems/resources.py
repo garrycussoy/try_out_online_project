@@ -19,7 +19,7 @@ bp_problems = Blueprint('problems', __name__)
 api = Api(bp_problems)
 
 '''
-The following class is designed for getting all problems list and post a new problem.
+The following class is designed for posting a new problem.
 '''
 class ProblemsResource(Resource):
     '''
@@ -31,85 +31,6 @@ class ProblemsResource(Resource):
     def options(self):
         return {'status': 'ok'}, 200
     
-    '''
-    The following method is designed to get all problems list. The problems can be arranged by some
-    search condition inputted by admin (the search categories are: level and topic).
-
-    :param object self: A must present keyword argument
-    :return: All problems list that have not been deleted yet and satisfy search condition
-    '''
-    @jwt_required
-    @admin_required
-    def get(self):
-        # Take input from admin
-        parser = reqparse.RequestParser()
-        parser.add_argument('level', location = 'args', required = False)
-        parser.add_argument('topic', location = 'args', required = False)
-        parser.add_argument('page', location = 'args', required = True, type = int)
-        args = parser.parse_args()
-
-        # Query all non-deleted problems
-        problems_list = Problems.query.filter_by(deleted_at = None)
-        
-        # Search by level
-        if args['level'] != '' and args['level'] != None and args['level'] != 'Semua Level':
-            problems_list = problems_list.filter_by(level = args['level'])
-        if problems_list.first() is None:
-            return [], 200
-
-        # Prepare the data to be shown
-        problems_list_to_show = []
-        for problem in problems_list:
-            # Searching all topics related to this problem
-            related_problem_topic_instances = ProblemTopics.query.filter_by(problem_id = problem.id).filter_by(deleted_at = None).all()
-            related_topics = []
-            for problem_topic_instance in related_problem_topic_instances:
-                topic = Topics.query.filter_by(id = problem_topic_instance.topic_id).first()
-                related_topics.append(topic.topic)
-            
-            # Foramtting topics list into a string
-            related_topics = ", ".join(related_topics)
-        
-            # Format shown data
-            problem = marshal(problem, Problems.response_fields)
-            problem['topic'] = related_topics
-            problems_list_to_show.append(problem)
-
-        # Search by topic
-        if args['topic'] != '' and args['topic'] != None and args['topic'] != 'Semua Topik':
-            topic_inputted = Topics.query.filter_by(topic = args['topic']).first()
-            
-            # Check whether the topic exist or not
-            if topic_inputted is None:
-                return [], 200
-            else:
-                topic_id = topic_inputted.id
-
-            # Get all problems ID that related to the topic inputted
-            all_problem_topics_related = ProblemTopics.query.filter_by(topic_id = topic_id).filter_by(deleted_at = None)
-            related_problem_id_list = []
-            for problem_topic in all_problem_topics_related:
-                related_problem_id_list.append(problem_topic.problem_id)
-            
-            # Filter all problems which ID in related_problem_id_list
-            problems_list_to_show = filter(lambda problem: problem['id'] in related_problem_id_list, problems_list_to_show)
-            problems_list_to_show = list(problems_list_to_show)
-
-        # ---------- Pagination ----------
-        problem_per_page = 15
-        number_of_problems_to_show = len(problems_list_to_show)
-        min_order = (args['page'] - 1) * problem_per_page
-
-        # Check the index
-        if min_order > number_of_problems_to_show - 1:
-            return {'message': 'Halaman yang kamu minta tidak tersedia'}, 404
-
-        max_order = min(len(problems_list_to_show), args['page'] * problem_per_page)
-        problems_list_to_show = problems_list_to_show[min_order: max_order]
-        # ---------- End of Pagination ----------
-
-        return problems_list_to_show, 200
-
     '''
     The following method is designed to post new problem.
 
