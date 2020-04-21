@@ -43,7 +43,8 @@ def admin_required(fn):
 # ---------- Database Setup ----------
 # Connect to database
 try:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Garryac1@localhost:3306/try_out_online_project'
+    # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Garryac1@localhost:3306/try_out_online_project'
+    app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:alta1234@portofolio.clrlyzuonr9k.ap-southeast-1.rds.amazonaws.com:3306/try_out_online_project"
 except Exception as e:
     raise e
 
