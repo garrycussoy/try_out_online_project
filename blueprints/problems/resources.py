@@ -199,7 +199,7 @@ class ProblemsResourceById(Resource):
         # Check whether tehre is an empty field or not
         if (
             args['level'] == '' or args['level'] == None
-            or args['topics'] == []
+            or args['topics'] == [] or args['topics'] == '' or args['topics'] is None
             or args['content'] == '' or args['content'] == None
             or args['problem_type'] == '' or args['problem_type'] == None
             or args['answer'] == '' or args['answer'] == None

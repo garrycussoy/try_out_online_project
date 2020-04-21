@@ -1,5 +1,6 @@
 # Import from standard libraries
 import json
+import math
 from datetime import datetime, timedelta, date
 
 # Import from related third party
@@ -56,7 +57,7 @@ class ProblemCollectionPage(Resource):
         if args['level'] != '' and args['level'] != None and args['level'] != 'Semua Level':
             problems_list = problems_list.filter_by(level = args['level'])
         if problems_list.first() is None:
-            return [], 200
+            return {'total_problems': 0, 'max_page': 1, 'topic_chosen': args['topic'], 'level_chosen': args['level'], 'problems_list': []}, 200
 
         # Prepare the data to be shown
         problems_list_to_show = []
@@ -82,7 +83,7 @@ class ProblemCollectionPage(Resource):
             
             # Check whether the topic exist or not
             if topic_inputted is None:
-                return [], 200
+                return {'total_problems': 0, 'max_page': 1, 'topic_chosen': args['topic'], 'level_chosen': args['level'], 'problems_list': []}, 200
             else:
                 topic_id = topic_inputted.id
 
@@ -97,12 +98,14 @@ class ProblemCollectionPage(Resource):
             problems_list_to_show = list(problems_list_to_show)
 
         # ---------- Pagination ----------
-        problem_per_page = 15
+        problem_per_page = 10
         number_of_problems_to_show = len(problems_list_to_show)
-        min_order = (args['page'] - 1) * problem_per_page
+        min_order = (args["page"] - 1) * problem_per_page
+        max_page = math.ceil(number_of_problems_to_show / problem_per_page)
+        max_page = max(1, max_page)
 
         # Check the index
-        if min_order > number_of_problems_to_show - 1:
+        if args['page'] > max_page:
             return {'message': 'Halaman yang kamu minta tidak tersedia'}, 404
 
         max_order = min(len(problems_list_to_show), args['page'] * problem_per_page)
@@ -126,7 +129,7 @@ class ProblemCollectionPage(Resource):
         for topic in all_topics:
             available_topics.append(topic.topic)
 
-        return {'available_topics': available_topics, 'topic_chosen': topic_chosen, 'level_chosen': level_chosen, 'problems_list': problems_list_to_show}, 200
+        return {'total_problems': number_of_problems_to_show, 'max_page': max_page, 'available_topics': available_topics, 'topic_chosen': topic_chosen, 'level_chosen': level_chosen, 'problems_list': problems_list_to_show}, 200
         
 # Endpoint in problem-collection route
 api.add_resource(ProblemCollectionPage, '')

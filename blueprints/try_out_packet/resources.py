@@ -220,12 +220,20 @@ class TestResourceById(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('name', location = 'json', required = True)
         parser.add_argument('description', location = 'json', required = True)
+        parser.add_argument('is_show', location = 'json', required = False, type = bool)
         args = parser.parse_args()
 
         # Search for related try_out_packet
         related_test = TryOutPacket.query.filter_by(deleted_at = None).filter_by(id = try_out_id).first()
         if related_test is None:
             return {'message': 'Paket tes yang kamu cari tidak ditemukan'}, 404
+
+        # Edit is_show variable only
+        if args['is_show'] != '' and args['is_show'] is not None:
+            related_test.is_show = args['is_show']
+            related_test.updated_at = datetime.now().strftime("%Y-%m-%d %H:%I:%S")
+            db.session.commit()
+            return {'message': 'Sukses mengubah variabel tampilkan', 'is_show': args['is_show']}, 200
 
         # Check for emptyness
         if args['name'] == '' or args['name'] is None or args['description'] == '' or args['description'] is None:
