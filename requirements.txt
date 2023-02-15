@@ -10,7 +10,7 @@ requests
 pytest
 pytest-cov
 flask_cors
-werkzeug==0.16.0
+werkzeug==2.2.3
 appdirs==1.4.3
 distlib==0.3.0
 filelock==3.0.12
